@@ -36,7 +36,7 @@ VITE_AZURE_OPENAI_API_VERSION=2024-08-01-preview
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-username/tiptap-azure-ai.git
+git clone https://github.com/jzakotnik/tiptap-azure-ai.git
 cd tiptap-azure-ai
 npm install
 ```
