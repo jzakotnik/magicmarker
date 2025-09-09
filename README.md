@@ -1,69 +1,90 @@
-# React + TypeScript + Vite
+# ✨ AI Magic Marker idea
+4. The app calls the Azure Chat Completions API and replaces the selected text with the AI’s rewritten version.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Expanding the ESLint configuration
+## ⚙️ Configuration
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+All configuration is handled via **Vite environment variables**. Create a `.env.local` file in the project root:
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+VITE_AZURE_OPENAI_ENDPOINT=https://YOUR-RESOURCE-NAME.openai.azure.com
+VITE_AZURE_OPENAI_API_KEY=YOUR-SECRET-KEY
+VITE_AZURE_OPENAI_DEPLOYMENT=YOUR-DEPLOYMENT-NAME
+VITE_AZURE_OPENAI_API_VERSION=2024-08-01-preview
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- **VITE_AZURE_OPENAI_ENDPOINT** → Your Azure OpenAI resource endpoint.
+- **VITE_AZURE_OPENAI_API_KEY** → Your Azure API key.
+- **VITE_AZURE_OPENAI_DEPLOYMENT** → The **deployment name** you created (e.g., `gpt-4o-mini`).
+- **VITE_AZURE_OPENAI_API_VERSION** → API version (defaults to `2024-08-01-preview`).
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+
+> ⚠️ **Security note**: Because this calls Azure directly from the browser, the API key is visible in DevTools. For production, proxy via a backend.
+
+
+---
+
+
+## 🛠 Installation & Usage
+
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/your-username/tiptap-azure-ai.git
+cd tiptap-azure-ai
+npm install
 ```
+
+
+### 2. Configure Env
+Create `.env.local` and add your Azure credentials (see [Configuration](#️-configuration)).
+
+
+### 3. Run in Dev
+```bash
+npm run dev
+```
+Visit: [http://localhost:5173](http://localhost:5173)
+
+
+### 4. Build for Production
+```bash
+npm run build
+npm run preview
+```
+
+
+---
+
+
+## ✨ Features
+- 🎨 Gradient + glassmorphism UI
+- 📝 Rich-text editing with **Tiptap**
+- 🔍 Selection preview
+- 💬 Chat panel for instructions
+- 🤖 Live Azure AI rewriting
+- 📱 Responsive design (mobile/desktop)
+
+
+---
+
+
+## 📚 Tech Stack
+- [React 18](https://react.dev/)
+- [Vite](https://vitejs.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Tiptap](https://tiptap.dev/)
+- [Azure AI Foundry](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
+
+
+---
+
+
+## 📝 License
+MIT – feel free to adapt and extend!
