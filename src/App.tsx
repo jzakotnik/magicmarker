@@ -1,26 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
-/**
- * Mock API call — replace with your real endpoint.
- * Expect to return a string that will replace the selected range.
- */
 async function transformTextApi(
   selectedText: string,
   chatMessage: string
 ): Promise<string> {
-  const endpoint = import.meta.env.VITE_AZURE_OPENAI_ENDPOINT as string; // e.g. https://your-resource.openai.azure.com
-  const apiKey = import.meta.env.VITE_AZURE_OPENAI_API_KEY as string; // WARNING: exposed in browser build
-  const deployment = import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT as string; // your deployment name
+  const endpoint = import.meta.env.VITE_AZURE_OPENAI_ENDPOINT as string;
+  const apiKey = import.meta.env.VITE_AZURE_OPENAI_API_KEY as string;
+  const deployment = import.meta.env.VITE_AZURE_OPENAI_DEPLOYMENT as string;
   const apiVersion =
     (import.meta.env.VITE_AZURE_OPENAI_API_VERSION as string) ||
     "2024-08-01-preview";
 
   if (!endpoint || !apiKey || !deployment) {
-    throw new Error(
-      "Missing Azure env vars: VITE_AZURE_OPENAI_ENDPOINT / VITE_AZURE_OPENAI_API_KEY / VITE_AZURE_OPENAI_DEPLOYMENT"
-    );
+    throw new Error("Missing Azure env vars");
   }
 
   const url = `${endpoint.replace(
@@ -30,11 +24,9 @@ async function transformTextApi(
 
   const system =
     "You are a helpful writing assistant. Rewrite the provided selection according to the user's instructions. Return ONLY the rewritten text without any preface or commentary.";
-  const user = `Selection:
-"""${selectedText}"""
-
-
-Instructions: ${chatMessage || "Rewrite to be clearer."}`;
+  const user = `Selection:\n"""${selectedText}"""\n\nInstructions: ${
+    chatMessage || "Rewrite to be clearer."
+  }`;
 
   const res = await fetch(url, {
     method: "POST",
@@ -47,6 +39,7 @@ Instructions: ${chatMessage || "Rewrite to be clearer."}`;
         { role: "system", content: system },
         { role: "user", content: user },
       ],
+
       n: 1,
     }),
   });
@@ -78,7 +71,7 @@ export default function App() {
     editorProps: {
       attributes: {
         class:
-          "prose prose-invert max-w-none focus:outline-none px-5 sm:px-6 pt-5 sm:pt-6 pb-24 text-base",
+          "prose prose-invert max-w-none focus:outline-none px-4 pt-4 pb-16 text-sm sm:text-base",
       },
     },
     onSelectionUpdate: ({ editor }) => {
@@ -97,7 +90,6 @@ export default function App() {
     },
   });
 
-  // Initialize selection preview on first render
   useEffect(() => {
     if (editor) {
       const { state } = editor;
@@ -113,27 +105,20 @@ export default function App() {
     if (!editor) return null;
     const { state } = editor;
     const { from, to, empty, $from } = state.selection as any;
-
-    // If there's a real selection, use it
     if (!empty && to > from) {
       return { from, to, selectedText: state.doc.textBetween(from, to, "\n") };
     }
-
-    // Otherwise, use the parent block (typically the paragraph) under the cursor
     const depth = $from.depth;
     const start = $from.start(depth);
     const end = $from.end(depth);
     const selectedText = state.doc.textBetween(start, end, "\n");
-
     return { from: start, to: end, selectedText };
   }, [editor]);
 
   const handleSubmit = useCallback(async () => {
     if (!editor || isSubmitting) return;
-
     const range = getTargetRange();
     if (!range) return;
-
     setIsSubmitting(true);
     try {
       const output = await transformTextApi(
@@ -145,9 +130,9 @@ export default function App() {
         .focus()
         .insertContentAt({ from: range.from, to: range.to }, output)
         .run();
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      alert("Failed to transform text. Check the console for details.");
+      alert(e?.message || "Failed to transform text.");
     } finally {
       setIsSubmitting(false);
     }
@@ -159,147 +144,97 @@ export default function App() {
   );
 
   return (
-    <div className="min-h-screen w-full relative overflow-hidden">
-      {/* Background gradient + ornaments */}
+    <div className="min-h-screen w-full relative overflow-hidden text-sm sm:text-base">
       <div className="absolute inset-0 -z-10 bg-gradient-to-br from-slate-900 via-indigo-900 to-fuchsia-800" />
-      {/* subtle grid */}
-      <div className="absolute inset-0 -z-10 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:24px_24px]" />
-      {/* radial glow blobs */}
-      <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full bg-fuchsia-500 blur-[100px] opacity-30" />
-      <div className="absolute -bottom-24 -right-24 h-72 w-72 rounded-full bg-indigo-500 blur-[100px] opacity-30" />
+      <div className="absolute inset-0 -z-10 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.06)_1px,transparent_1px)] [background-size:20px_20px]" />
+      <div className="absolute -top-16 -left-16 h-52 w-52 rounded-full bg-fuchsia-500 blur-[90px] opacity-30" />
+      <div className="absolute -bottom-16 -right-16 h-52 w-52 rounded-full bg-indigo-500 blur-[90px] opacity-30" />
 
-      <div className="mx-auto max-w-6xl min-h-screen px-4 sm:px-6 py-6 flex flex-col gap-4">
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-          <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white drop-shadow">
-            The Magic AI Marker
+      <div className="mx-auto max-w-5xl min-h-screen px-3 sm:px-4 py-4 flex flex-col gap-3">
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1">
+          <h1 className="text-xl md:text-2xl font-semibold tracking-tight text-white drop-shadow">
+            Magic Marker AI -{" "}
+            <small>
+              made with <span className="text-pink-400">❤</span> by InDiCom
+            </small>
           </h1>
-          <p className="text-white/80 text-sm">Select → Describe → Replace</p>
+          <p className="text-white/70 text-xs sm:text-sm">
+            Select → Describe → Replace
+          </p>
         </header>
 
-        {/* Shell card */}
-        <div className="flex-1 rounded-3xl border border-white/15 bg-white/10 backdrop-blur-xl shadow-2xl overflow-hidden">
-          {/* Top: Editor panel */}
-          <section className="relative min-h-[45vh] md:min-h-0 md:basis-[70%] md:h-[calc(70vh)] flex flex-col">
-            <div className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-white/15 bg-white/5">
-              <div className="flex items-center gap-2 text-sm text-white/80">
-                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 border border-white/20">
-                  <svg
-                    className="h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M12 20l9-7-9-7-9 7 9 7z" />
-                  </svg>
+        <div className="flex-1 rounded-2xl border border-white/15 bg-white/10 backdrop-blur-xl shadow-xl overflow-hidden">
+          <section className="relative min-h-[40vh] md:basis-[65%] flex flex-col">
+            <div className="flex items-center justify-between px-3 sm:px-4 py-2 border-b border-white/15 bg-white/5">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-white/80">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-2.5 py-0.5 border border-white/20">
                   Editor
                 </span>
                 <span className="hidden sm:inline text-white/60">•</span>
                 <span
-                  className="hidden sm:inline truncate max-w-[40ch]"
+                  className="hidden sm:inline truncate max-w-[30ch]"
                   title={selectionPreview || "(no text)"}
                 >
                   <span className="text-white/60">Selection:</span>{" "}
                   {selectionPreview || "(current paragraph)"}
                 </span>
               </div>
-              <div className="text-xs text-white/60">
-                Cmd/Ctrl+B bold • Cmd/Ctrl+I italic
+              <div className="text-[10px] sm:text-xs text-white/60">
+                Cmd/Ctrl+B • Cmd/Ctrl+I
               </div>
             </div>
             <div className="flex-1 overflow-auto">
               {editor ? (
                 <EditorContent editor={editor} className="h-full" />
               ) : (
-                <div className="h-full grid place-items-center py-10 text-white/80">
+                <div className="h-full grid place-items-center py-6 text-white/80">
                   Loading editor…
                 </div>
               )}
             </div>
           </section>
 
-          {/* Divider */}
           <div className="h-px bg-white/15" />
 
-          {/* Bottom: Chat panel */}
-          <section className="md:basis-[30%] md:h-[calc(30vh)] p-4 sm:p-5 bg-white/5">
-            <div className="h-full flex flex-col gap-3">
+          <section className="md:basis-[35%] p-3 sm:p-4 bg-white/5">
+            <div className="h-full flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-medium text-white/90">
+                <h2 className="text-xs sm:text-sm font-medium text-white/90">
                   AI Instructions
                 </h2>
-                <div className="text-xs text-white/60">
-                  The API will replace your selection
+                <div className="text-[10px] sm:text-xs text-white/60">
+                  Replaces your selection
                 </div>
               </div>
 
-              {/* Chat box */}
-              <div className="flex-1 grid grid-rows-[1fr_auto] gap-3">
+              <div className="flex-1 grid grid-rows-[1fr_auto] gap-2">
                 <textarea
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
-                  placeholder="e.g., Make it concise and friendlier; keep technical terms."
-                  className="w-full resize-none rounded-2xl bg-white/10 border border-white/20 p-3 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[120px]"
+                  placeholder="e.g., Make it concise and friendly"
+                  className="w-full resize-none rounded-xl bg-white/10 border border-white/20 p-2 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-white/30 min-h-[80px] text-sm"
                 />
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={handleSubmit}
                     disabled={!canSend}
-                    className="inline-flex items-center gap-2 rounded-xl bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-2 font-medium shadow"
+                    className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 font-medium shadow text-sm"
                     title="Send"
                   >
-                    {isSubmitting ? (
-                      <>
-                        <svg
-                          className="animate-spin h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            d="M4 12a8 8 0 018-8"
-                          ></path>
-                        </svg>
-                        Sending
-                      </>
-                    ) : (
-                      <>
-                        <svg
-                          className="h-4 w-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M22 2L11 13"></path>
-                          <path d="M22 2l-7 20-4-9-9-4 20-7z"></path>
-                        </svg>
-                        Send
-                      </>
-                    )}
+                    {isSubmitting ? "Sending…" : "Send"}
                   </button>
 
-                  {/* Presets */}
-                  <div className="flex flex-wrap gap-2 text-xs">
+                  <div className="flex flex-wrap gap-1.5 text-[11px] sm:text-xs">
                     <button
                       onClick={() => setChatInput("Summarize in one sentence.")}
-                      className="px-3 py-1.5 rounded-lg bg-white/15 border border-white/25 hover:bg-white/20"
+                      className="px-2 py-1 rounded bg-white/15 border border-white/25 hover:bg-white/20"
                     >
                       Summarize
                     </button>
                     <button
                       onClick={() => setChatInput("Rewrite to active voice.")}
-                      className="px-3 py-1.5 rounded-lg bg-white/15 border border-white/25 hover:bg-white/20"
+                      className="px-2 py-1 rounded bg-white/15 border border-white/25 hover:bg-white/20"
                     >
                       Active voice
                     </button>
@@ -307,7 +242,7 @@ export default function App() {
                       onClick={() =>
                         setChatInput("Make it warmer and add an emoji.")
                       }
-                      className="px-3 py-1.5 rounded-lg bg-white/15 border border-white/25 hover:bg-white/20"
+                      className="px-2 py-1 rounded bg-white/15 border border-white/25 hover:bg-white/20"
                     >
                       Warmer 😊
                     </button>
@@ -318,21 +253,19 @@ export default function App() {
           </section>
         </div>
 
-        {/* Footer */}
-        <footer className="text-center text-xs text-white/70">
-          Swap{" "}
-          <code className="px-1 rounded bg-black/30">transformTextApi</code>{" "}
-          with your server call.
+        <footer className="text-center text-[11px] sm:text-xs text-white/70 flex flex-col gap-1">
+          <span className="text-white/60">
+            Made with <span className="text-pink-400">❤</span> by InDiCom
+          </span>
         </footer>
       </div>
 
-      {/* Minimal ProseMirror styles */}
       <style>{`
-        .ProseMirror p { margin: 0.5rem 0; }
-        .ProseMirror h2 { font-size: 1.25rem; font-weight: 700; margin-top: 1rem; }
-        .ProseMirror ul { list-style: disc; padding-left: 1.2rem; }
-        .ProseMirror ol { list-style: decimal; padding-left: 1.2rem; }
-        .ProseMirror blockquote { border-left: 3px solid rgba(255,255,255,0.25); margin: .75rem 0; padding-left: .75rem; color: rgba(255,255,255,0.85); }
+        .ProseMirror p { margin: 0.25rem 0; }
+        .ProseMirror h2 { font-size: 1.1rem; font-weight: 700; margin-top: 0.75rem; }
+        .ProseMirror ul { list-style: disc; padding-left: 1rem; }
+        .ProseMirror ol { list-style: decimal; padding-left: 1rem; }
+        .ProseMirror blockquote { border-left: 3px solid rgba(255,255,255,0.25); margin: .5rem 0; padding-left: .5rem; color: rgba(255,255,255,0.85); }
         .ProseMirror { outline: none; }
       `}</style>
     </div>
