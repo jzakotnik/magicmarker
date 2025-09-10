@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { createHighlightPlugin, highlightPluginKey } from "./highlightplugin";
 
 async function transformTextApi(
   selectedText: string,
@@ -62,6 +63,9 @@ export default function App() {
 
   const editor = useEditor({
     extensions: [StarterKit],
+    onCreate: ({ editor }) => {
+      editor.registerPlugin(createHighlightPlugin());
+    },
     content: `
       <h2>Welcome 👋</h2>
       <p>Select some text (or place your cursor in a paragraph), write instructions below, and press Send. The selected text will be replaced by the API response.</p>
@@ -77,6 +81,7 @@ export default function App() {
     onSelectionUpdate: ({ editor }) => {
       const { state } = editor;
       const { from, to, empty, $from } = state.selection as any;
+
       let text = "";
       if (!empty && to > from) {
         text = state.doc.textBetween(from, to, "\n");
@@ -87,6 +92,15 @@ export default function App() {
         text = state.doc.textBetween(start, end, "\n");
       }
       setSelectionPreview(text.slice(0, 160));
+
+      const range = !empty && to > from ? { from, to } : null;
+
+      // guard: editor.view may be undefined briefly
+      if (editor && (editor as any).view) {
+        (editor as any).view.dispatch(
+          editor.state.tr.setMeta(highlightPluginKey, range)
+        );
+      }
     },
   });
 
@@ -267,6 +281,10 @@ export default function App() {
         .ProseMirror ol { list-style: decimal; padding-left: 1rem; }
         .ProseMirror blockquote { border-left: 3px solid rgba(255,255,255,0.25); margin: .5rem 0; padding-left: .5rem; color: rgba(255,255,255,0.85); }
         .ProseMirror { outline: none; }
+        .persist-highlight {
+          background-color: rgba(255, 215, 0, 0.35);
+          border-radius: 2px;
+        }
       `}</style>
     </div>
   );
